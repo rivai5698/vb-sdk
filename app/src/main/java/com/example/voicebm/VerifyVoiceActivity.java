@@ -1,5 +1,6 @@
 package com.example.voicebm;
 
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -18,11 +19,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+
+import com.example.mylibrary.ResultResponse;
+import com.example.mylibrary.VerifyVoiceId;
 
 import com.example.voicebm.Connect.NetworkProvider;
 import com.example.voicebm.Connect.SignupResponse;
@@ -42,14 +48,17 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+//import okhttp3.MediaType;
+//import okhttp3.MultipartBody;
+//import okhttp3.RequestBody;
+//import retrofit2.Call;
+//import retrofit2.Callback;
+//import retrofit2.Response;
 
 public class VerifyVoiceActivity extends AppCompatActivity {
+    private VerifyVoiceId verifyVoiceId = new VerifyVoiceId();
+
+
     private static final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
     private static final int RECORDER_CHANNELS_OUT = AudioFormat.CHANNEL_OUT_MONO;
     private static final int RECORDER_CHANNELS_IN = AudioFormat.CHANNEL_IN_MONO;
@@ -188,6 +197,9 @@ public class VerifyVoiceActivity extends AppCompatActivity {
                 tvGuide.setVisibility(View.INVISIBLE);
                 filePCM = new File(pathSavePCM);
                 fileWAV = new File(pathSaveWAV);
+
+
+
                 if (clicked1==true){
                     btnCtn.setEnabled(true);
                     btnBack.setEnabled(true);
@@ -227,53 +239,84 @@ public class VerifyVoiceActivity extends AppCompatActivity {
                 btnBack.setEnabled(false);
                 btnStop.setEnabled(false);
                 btnPlay.setEnabled(false);
-                VerifyCommunication verifyService = NetworkProvider.self().getRetrofit().create(VerifyCommunication.class);
-                RequestBody verify_type = RequestBody.create(MediaType.parse("multipart/form-data"),verify_typeStr);
-                RequestBody speaker = RequestBody.create(MediaType.parse("multipart/form-data"),speakerStr);
-                RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), fileWAV);
-                MultipartBody.Part reqFile1 = MultipartBody.Part.createFormData("file", fileWAV.getName(), requestFile);
-                verifyService.verify(reqFile1,speaker,verify_type)
-                        .enqueue(new Callback<VerifyResponse>() {
-                            @Override
-                            public void onResponse(Call<VerifyResponse> call, Response<VerifyResponse> response) {
+//                VerifyCommunication verifyService = NetworkProvider.self().getRetrofit().create(VerifyCommunication.class);
+//                RequestBody verify_type = RequestBody.create(MediaType.parse("multipart/form-data"),verify_typeStr);
+//                RequestBody speaker = RequestBody.create(MediaType.parse("multipart/form-data"),speakerStr);
+//                RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), fileWAV);
+//                MultipartBody.Part reqFile1 = MultipartBody.Part.createFormData("file", fileWAV.getName(), requestFile);
+//                verifyService.verify(reqFile1,speaker,verify_type)
+//                        .enqueue(new Callback<VerifyResponse>() {
+//                            @Override
+//                            public void onResponse(Call<VerifyResponse> call, Response<VerifyResponse> response) {
+//
+//                                if (response.body().getStatus()==1){
+//                                    Double score = Math.round(response.body().getScore() * 100.0) / 100.0;
+//                                    tvResultPercent.setText("Độ chính xác: "+ score.toString()+"%");
+//                                    btnCtn.setVisibility(View.INVISIBLE);
+//
+//                                    if(response.body().getResult().equalsIgnoreCase("true")){
+//                                        tvResultText.setText("Kết quả chính xác.");
+//                                    }
+//                                    else {
+//                                        tvResultText.setText("Kết quả chưa chính xác.");
+//                                    }
+//
+//                                    tvResultPercent.setVisibility(View.VISIBLE);
+//                                    // tvResultText.setVisibility(View.VISIBLE);
+//                                }
+//                                else {
+//                                    tvResultText.setText("Thời gian thu âm quá ngắn.");
+//                                    tvResultText.setVisibility(View.VISIBLE);
+//                                    Toast.makeText(VerifyVoiceActivity.this,"Thất bại",Toast.LENGTH_SHORT).show();
+//                                }
+//                                System.out.println(response.body());
+//                                btnBack.setEnabled(true);
+//
+//                                fileWAV.delete();
+//                            }
+//
+//
+//                            @Override
+//                            public void onFailure(Call<VerifyResponse> call, Throwable t) {
+//                                Toast.makeText(VerifyVoiceActivity.this,"Thất bại",Toast.LENGTH_SHORT).show();
+//                                System.out.println(t);
+//                                btnBack.setEnabled(true);
+//                                fileWAV.delete();
+//                                filePCM.delete();
+//                            }
+//
+//                        });
 
-                                if (response.body().getStatus()==1){
-                                    Double score = Math.round(response.body().getScore() * 100.0) / 100.0;
-                                    tvResultPercent.setText("Độ chính xác: "+ score.toString()+"%");
-                                    btnCtn.setVisibility(View.INVISIBLE);
+                verifyVoiceId.setMyFileRecorder(fileWAV);
+                verifyVoiceId.setMySpeakerStr(speakerStr);
 
-                                    if(response.body().getResult().equalsIgnoreCase("true")){
-                                        tvResultText.setText("Kết quả chính xác.");
-                                    }
-                                    else {
-                                        tvResultText.setText("Kết quả chưa chính xác.");
-                                    }
+                ResultResponse rR= verifyVoiceId.solveFile();
+                if(rR!=null){
+                    String rS = rR.getTextResult();
+                    String rP = rR.getPercentResult();
+                    if (rP==null){
+                        tvResultPercent.setText("0%");
+                    }else {
+                        tvResultPercent.setText("Độ chính xác: "+ rP+"%");
+                    }
 
-                                    tvResultPercent.setVisibility(View.VISIBLE);
-                                    // tvResultText.setVisibility(View.VISIBLE);
-                                }
-                                else {
-                                    tvResultText.setText("Thời gian thu âm quá ngắn.");
-                                    tvResultText.setVisibility(View.VISIBLE);
-                                    Toast.makeText(VerifyVoiceActivity.this,"Thất bại",Toast.LENGTH_SHORT).show();
-                                }
-                                System.out.println(response.body());
-                                btnBack.setEnabled(true);
-
-                                fileWAV.delete();
-                            }
+                    btnCtn.setVisibility(View.INVISIBLE);
+                    tvResultPercent.setVisibility(View.VISIBLE);
+                    btnBack.setEnabled(true);
+                    System.out.println("rS: " + rS + " " +rP);
+                }else {
+                    Toast.makeText(VerifyVoiceActivity.this,"Thất bại",Toast.LENGTH_SHORT).show();
+                    btnBack.setEnabled(true);
+                }
 
 
-                            @Override
-                            public void onFailure(Call<VerifyResponse> call, Throwable t) {
-                                Toast.makeText(VerifyVoiceActivity.this,"Thất bại",Toast.LENGTH_SHORT).show();
-                                System.out.println(t);
-                                btnBack.setEnabled(true);
-                                fileWAV.delete();
-                                filePCM.delete();
-                            }
 
-                        });
+
+//                tvResultText.setText(verifyVoiceId.getResultTextResponse());
+
+
+
+
 
                 Toast.makeText(VerifyVoiceActivity.this,"Đang kiểm tra",Toast.LENGTH_SHORT).show();
                 Timer buttonTimer = new Timer();
@@ -396,10 +439,12 @@ public class VerifyVoiceActivity extends AppCompatActivity {
         mainIntent.putExtra("status",1);
         mainIntent.putExtra("phoneNumber",speakerStr);
         mainIntent.putExtra("otpCode",otpStr);
-        startActivity(mainIntent);
 
+        mainIntent.setType(Settings.ACTION_SYNC_SETTINGS);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(mainIntent);
+
         finish();
     }
 
@@ -410,10 +455,12 @@ public class VerifyVoiceActivity extends AppCompatActivity {
         mainIntent.putExtra("status",1);
         mainIntent.putExtra("phoneNumber",speakerStr);
         mainIntent.putExtra("otpCode",otpStr);
-        startActivity(mainIntent);
 
+
+        mainIntent.setType(Settings.ACTION_SYNC_SETTINGS);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(mainIntent);
         finish();
     }
 

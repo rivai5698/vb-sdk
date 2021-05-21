@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -51,18 +52,22 @@ public class LoginActivity extends AppCompatActivity {
                     phoneNumber = etPhone.getText().toString();
                     System.out.println("phone: "+phoneNumber);
                     if (phoneNumber.equalsIgnoreCase("")){
+                        System.out.println("Phone empty");
                         Toast.makeText(LoginActivity.this,"Quý khách chưa nhập mã số điện thoại",Toast.LENGTH_SHORT).show();
                     }
                     else if(phoneNumber.length()<10){
+                        System.out.println("Length smaller than 10");
                         Toast.makeText(LoginActivity.this,"Số điện thoại sai định dạng",Toast.LENGTH_SHORT).show();
                     }
                     else {
+                        System.out.println("Mèo méo meo mèo meo");
                         OTPCommunication otpCommunication = NetworkProvider.self().getRetrofit().create(OTPCommunication.class);
                         RequestBody speaker = RequestBody.create(MediaType.parse("multipart/form-data"),phoneNumber);
                         otpCommunication.sendOTP(speaker)
                                 .enqueue(new Callback<OTPResponse>() {
                                     @Override
                                     public void onResponse(Call<OTPResponse> call, Response<OTPResponse> response) {
+                                        System.out.println("AAAAAAAAAAAA: "+response.body());
                                         if(response.body().getStatus()==1){
                                             Toast.makeText(LoginActivity.this,"Mã OTP đang được gửi tới quý khách",Toast.LENGTH_SHORT).show();
                                             Log.i(TAG,"Gửi OTP thành công");
@@ -120,7 +125,7 @@ public class LoginActivity extends AppCompatActivity {
                                     @Override
                                     public void onFailure(Call<OTPResponse> call, Throwable t) {
                                         Toast.makeText(LoginActivity.this,"Lỗi khi gửi mã OTP",Toast.LENGTH_SHORT).show();
-                                        Log.e(TAG,"Lỗi gửi mã OTP từ hệ thống");
+                                        Log.e(TAG,"Lỗi gửi mã OTP từ hệ thống0000");
                                     }
                                 });
                     }
@@ -152,8 +157,13 @@ public class LoginActivity extends AppCompatActivity {
         Intent otpIntent = new Intent(LoginActivity.this,OTPActivity.class);
         otpIntent.putExtra("phoneNumber",phoneNumber);
         otpIntent.putExtra("checkStatus",checkStatus);
+
         System.out.println("Check stt Login: "+ checkStatus);
+        otpIntent.setType(Settings.ACTION_SYNC_SETTINGS);
+        otpIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        otpIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(otpIntent);
+
         finish();
     }
 

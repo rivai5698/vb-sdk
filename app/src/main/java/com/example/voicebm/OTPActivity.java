@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -129,20 +130,23 @@ public class OTPActivity extends AppCompatActivity {
         mainIntent.putExtra("checkStatus",checkStatus);
         mainIntent.putExtra("status",1);
         mainIntent.putExtra("otpCode",otpCode);
-        startActivity(mainIntent);
 
+        mainIntent.setType(Settings.ACTION_SYNC_SETTINGS);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(mainIntent);
+
         finish();
     }
     @Override
     public void onBackPressed() {
         // your code.
         Intent loginIntent = new Intent(OTPActivity.this,LoginActivity.class);
-        startActivity(loginIntent);
 
+        loginIntent.setType(Settings.ACTION_SYNC_SETTINGS);
         loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(loginIntent);
         finish();
     }
 }

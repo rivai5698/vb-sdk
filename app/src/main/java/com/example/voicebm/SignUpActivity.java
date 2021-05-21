@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.OpenableColumns;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -1177,10 +1178,11 @@ public class SignUpActivity extends AppCompatActivity {
         mainIntent.putExtra("status",1);
         mainIntent.putExtra("phoneNumber",speakerStr);
         mainIntent.putExtra("otpCode",otp_codeStr);
-        startActivity(mainIntent);
-
+        mainIntent.setType(Settings.ACTION_SYNC_SETTINGS);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(mainIntent);
+
         finish();
     }
 
